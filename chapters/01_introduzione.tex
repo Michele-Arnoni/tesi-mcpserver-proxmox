@@ -1,7 +1,19 @@
 \chapter{Introduzione}
 
 \section{Contesto e scenario generale}
+\subsection{Hypervisor}
+In ambito infrastrutturale IT, una macchina opera grazie all'impiego di sistemi operativi ad hoc.
 
-\section{Problema che viene risolto}
+In tale ambiente si parla infatti di \textit{Hypervisor}, ovvero particolari software specializzati nella virtualizzazione multipla di ambienti che ospiteranno i vari servizi.
+
+\subsection{Model Context Protocol (MCP)}
+Un qualsiasi \textit{LLM} può interagire con software classici interpretandoli come tools e instaurando con essi una comunicazione simil API, ma molto più specializzata.
+In questo scenario l'azienda \textit{Anthropic} ha sviluppato un protocollo chiamato \textit{MCP}, che permette interazioni strutturate come un sistema client-server, ruoli ricoperti rispettivamente dall'LLM e il layer MCP.
+
+\section{Problematiche che si propone di risolvere}
+La gestione di un \textit{hypervisor} richiede competenze sistemistiche verticali e l'uso di interfacce GUI o CLI spesso complesse e poco user-friendly. 
+In questo lavoro di tesi si propone di realizzare e valutare un \textit{MCP server} con il ruolo di bridge architetturale tra un qualsiasi \textit{LLM} e un hypervisor aggiungendo così una nuova interfaccia che permetta di interagire con un hypervisor basata sul linguaggio naturale.
 
 \section{Obiettivi della tesi}
+L'obiettivo di questo lavoro di tesi è analizzare, implementare e valutare l'efficacia e i limiti di un'architettura \textit{LLM to hypervisor}.
+L'architettura non si limita ad interfacciare un LLM ad un hypervisor, ma di irrobustire questa interfaccia con scelte architetturali volte a mitigare operazioni potenzialmente distruttive e a mantenere il maggior controllo possibile.
