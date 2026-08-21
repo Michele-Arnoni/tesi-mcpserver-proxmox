@@ -1,13 +1,12 @@
 \documentclass[12pt, a4paper]{report}
 
-% --- INIZIO PREAMBOLO ---
 \usepackage[utf8]{inputenc}
 \usepackage[italian]{babel}
 \usepackage{hyperref}
 
 \title{AIOps e Model Context Protocol: Bridge archittetturale tra LLM e hypervisor Proxmox}
 \author{Michele Arnoni}
-\date{\today}
+
 
 \usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
 \addbibresource{biblography.bib}
@@ -16,17 +15,16 @@
 \maketitle 
 \tableofcontents 
 
-\chapter{Abstract}
-    \section{}
-    Questo è l'abstract della mia tesi di laurea. In questa sezione, fornisco una panoramica concisa del contenuto della tesi
+% --- CAPITOLI ---
+\input{chapters/00_abstract.tex}
+\input{chapters/01_introduzione.tex}
+\input{chapters/02_background.tex}
+\input{chapters/03_analisi_dei_requisiti.tex}
+\input{chapters/04_progettazione_e_scelte_architetturali.tex}
+\input{chapters/05_sviluppo_e_implementazione.tex}
+\input{chapters/06_testing_e_valutazione_sperimentale.tex}
+\input{chapters/07_conclusioni_e_sviluppi_futuri.tex}
 
-\chapter{Introduzione}
-Questo è il primo capitolo della mia tesi di laurea.
-Per andare a capo e creare un nuovo paragrafo, devi premere Invio due volte lasciando una riga vuota nel codice.
-
-\chapter{Stato dell'Arte}
-Questo è il secondo capitolo. Noterai che i numeri dei capitoli e l'indice si aggiornano in automatico.
-
-
+% --- BIBLIOGRAFIA ---
 \printbibliography[heading=bibintoc, title={Bibliografia}]
 \end{document}
