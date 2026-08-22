@@ -4,11 +4,13 @@
 \subsection{Hypervisor}
 In ambito infrastrutturale IT, una macchina opera grazie all'impiego di sistemi operativi ad hoc.
 
-In tale ambiente si parla infatti di \textit{Hypervisor}, ovvero particolari software specializzati nella virtualizzazione multipla di ambienti che ospiteranno i vari servizi.
+In tale ambiente si parla infatti di \textit{Hypervisor} \cite{IBM_hypervisor_overview}, ovvero particolari software specializzati nella virtualizzazione multipla di ambienti che ospiteranno i vari servizi.
 
 \subsection{Model Context Protocol (MCP)}
 Un qualsiasi \textit{LLM} può interagire con software classici interpretandoli come tools e instaurando con essi una comunicazione simil API, ma molto più specializzata.
-In questo scenario l'azienda \textit{Anthropic} ha sviluppato un protocollo chiamato \textit{MCP}, che permette interazioni strutturate come un sistema client-server, ruoli ricoperti rispettivamente dall'LLM e il layer MCP.
+In questo scenario l'azienda \textit{Anthropic} ha sviluppato un protocollo chiamato \textit{MCP} \cite{mcp_anthropic_announcement}, che permette interazioni strutturate come un sistema client-server, ruoli ricoperti rispettivamente dall'LLM e il layer MCP.
+
+Attualmente il progetto \textit{MCP} è opensource ed è stato donato da \textit{Anthropic}, per garantirne l'indipendenza, alla \textit{Agentic AI Foundation} \cite{mcp_agentic_ai_foundation} \cite{mcp_project_page}, un fondo gestito dalla \textit{Linux Foundation}.
 
 \section{Problematiche che si propone di risolvere}
 La gestione di un \textit{hypervisor} richiede competenze sistemistiche verticali e l'uso di interfacce GUI o CLI spesso complesse e poco user-friendly. 
@@ -16,4 +18,5 @@ In questo lavoro di tesi si propone di realizzare e valutare un \textit{MCP serv
 
 \section{Obiettivi della tesi}
 L'obiettivo di questo lavoro di tesi è analizzare, implementare e valutare l'efficacia e i limiti di un'architettura \textit{LLM to hypervisor}.
-L'architettura non si limita ad interfacciare un LLM ad un hypervisor, ma di irrobustire questa interfaccia con scelte architetturali volte a mitigare operazioni potenzialmente distruttive e a mantenere il maggior controllo possibile.
+
+L'architettura non si limita ad interfacciare un \textit{LLM} ad un hypervisor, ma di irrobustire questa interfaccia con scelte architetturali volte a mitigare operazioni potenzialmente distruttive e a mantenere il maggior controllo possibile sulle azioni dell'\textit{LLM}.
