@@ -1,5 +1,48 @@
 \chapter{Background}
 
-\section{Stato dell'Arte}
+\section{Evoluzione delle ITOps e AIOps}
+
+Tutte le operazioni volte alla gestione delle infrastrutture IT, quali manutenzione, ottimizzazione e pianificazione delle operazioni strategiche a lungo termine, sono descritte dal termine \textit{ITOps (IT Operations)} \cite{IBM_itops}, termine ormai consolidato nel settore, ma che ha subito profonde trasformazioni con l'avvento del cloud computing e la crescente complessità dei sistemi distribuiti.
+
+Tradizionalmente, le attività di ITOps venivano gestite in modo prevalentemente manuale. Gli operatori facevano affidamento su cruscotti di monitoraggio statici e sistemi di alert automatizzati basati su parametri preimpostati. 
+
+Con l'esplosione dei dati generati dalle infrastrutture moderne (log, metriche, tracce) e la transizione verso architetture a microservizi, questo approccio si è rivelato difficilmente scalabile e con una inefficienza direttamente proporzionale alle dimensioni del sistema. 
+
+La frammentazione dei servizi e l'enorme volume di alert possono rendere molto rumorosa e lenta l'identificazione della causa radice (\textit{root cause analysis}) di un disservizio.
+
+Per rispondere a queste sfide, negli ultimi anni si è assistito all'introduzione delle \textit{AIOps (Artificial Intelligence for IT Operations)} \cite{IBM_aiops}. Questo termine, coniato da \textit{Gartner} \cite{Gartner_aiops}, una delle più importanti e influenti società di ricerca e analisi nel campo IT, descrive come l'impiego di software di monitoring o interazione basato su AI all'interno dei flussi di lavoro delle ITOps possa portare a benefici concreti in termini di incremento dell'immediatezza operativa e di strutturamento di grosse mole di alert.
+
+L'obiettivo principale delle AIOps è aumentare le performance di identificazione e risoluzione di disservizi in tempi più rapidi e di incapsulare automazioni complesse ed eterogenee in comandi impartiti tramite il linguaggio naturale.
+
+Le soluzioni AIOps operano tipicamente attraverso diverse fasi:
+\begin{itemize}
+    \item \textbf{Raccolta e aggregazione}: centralizzazione di grandi volumi di dati eterogenei provenienti da molteplici sorgenti dell'infrastruttura.
+    \item \textbf{Analisi e rilevamento}: utilizzo di algoritmi di machine learning per l'interpretazione dei dati in tempo reale.
+    \item \textbf{Correlazione}: raggruppamento di eventi correlati per ridurre il rumore di fondo ed evitare la duplicazione delle segnalazioni, demoltiplicando gli alert.
+    \item \textbf{Risoluzione automatica}: attivazione immediata di workflow automatizzati per mitigare o risolvere il problema senza l'intervento umano diretto o invio di proposte di risoluzione automatizzate con scelta a cura di un umano per le problematiche più critiche.
+\end{itemize}
+
+L'evoluzione verso le AIOps rappresenta quindi un passo fondamentale per garantire la resilienza e l'efficienza dei sistemi IT moderni, ponendo le basi per una gestione infrastrutturale semplificata e intelligente.
+
+\section{Infrastructure as Code (IaC) e API REST}
+L'\textit{IaC (Infrastructure as Code)} \cite{IBM_iac} è una pratica ingegneristica che prevede di trattare una infrastruttura IT come un software, con tutti i vantaggi che ne conseguono.
+
+Il workflow di un team IT basato sul paradigma \textit{IaC} si compone delle seguenti fasi: 
+\begin{itemize}
+    \item \textbf{Writing}: scrittura dei file di configurazione architetturale tramite linguaggi tipo \textit{HCL, YAML o JSON}. 
+    \item \textbf{Versioning}: i rilasci del codice sorgente vengono strutturati tramite sistemi di controllo delle versioni come \textit{Git}, incorporando anche test di controllo automatici ad ogni nuova versione.
+    \item \textbf{Provisioning}: un engine di automazione legge i file di configurazione e ne applica le specifiche in maniera idempotente, ovvero senza duplicare azioni già applicate in precedenza o riassegnare ripetutamente le stesse risorse.
+    \item \textbf{Distributing}: si applicano script per la distribuzione dell'infrastruttura in vari ambienti assicurando coerenza e stabilità grazie all'uso dei file sorgente già redatti e testati nella fase di Writing.
+\end{itemize}
+
+È facile intuire come questo approccio, più strutturato e di impronta fortemente ingegneristica, porti concreti vantaggi in termini di controllo del sistema, robustezza, manutenibilità, resilienza all'errore umano, riproducibilità delle configurazioni e scalabilità del sistema.
+
+Ponendo particolare attenzione alla fase di Provisioning e alle tecnologie che la popolano, è possibile imbattersi in strumenti di automazione specifici al sistema su cui operano, come \textit{AWS CloudFormation}, \textit{Azure Resource Manager} o \textit{Google Cloud Deployment Manager}, oppure in strumenti universali come \textit{Terraform}. Questi strumenti si interfacciano con il sistema tramite \textit{API (Application Programming Interface)} permettendo interazioni dirette e programmate ed evitando le interazioni manuali tramite console.
+
+Questo lavoro di tesi vuole evolvere questi strumenti grazie all'AI, rendendoli più flessibili e potenti, sostituendo il tradizionale layer di comunicazione \textit{API} con un \textit{MCP} e permettendo ad un LLM di dialogare con i sistemi IT.
+
+\section{L'interfacciamento degli LLM: dal ReAct al Tool Calling}
+
+\section{Limiti degli approcci attuali}
 
 \section{Rassegna delle tecnologie alternative}
