@@ -2,27 +2,41 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[italian]{babel}
-\usepackage{hyperref}
 \usepackage{graphicx}
 
-%\title{AIOps e Model Context Protocol: Bridge archittetturale tra LLM e hypervisor}
-%\author{Michele Arnoni}
-%\date{}
+% --- IMPAGINAZIONE E MARGINI ---
+\usepackage[
+    a4paper,
+    top=3cm,
+    bottom=3cm,
+    left=3.5cm,
+    right=2.5cm
+]{geometry}
 
+% --- INTERLINEA ---
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{hyperref}
+
+% --- BIBLIOGRAFIA ---
 \usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
 \addbibresource{bibliography.bib}
+\graphicspath{{assets/}}
 
 \begin{document}
+
+% --- FRONTESPIZIO ---
 \begin{titlepage}
     \centering
 
-    \includegraphics[width=12cm]{assets/unical_logo.png}\\[1cm]
+    \includegraphics[width=12cm]{unical_logo.png}\\[1cm]
 
     {\Large Dipartimento di INGEGNERIA INFORMATICA, MODELLISTICA, ELETTRONICA E SISTEMISTICA}\\[0.5cm]
-    {\large Corso di Laurea in Ingegneria Informatica}\\[2cm]
+    {\large Corso di Laurea in Ingegneria Informatica}\\[1.5cm] 
 
-    {\Huge \textbf{AIOps e Model Context Protocol}}\\[0.5cm]
-    {\Large \textit{Bridge archittetturale tra LLM e hypervisor}}\\[2.5cm]
+    {\LARGE \textbf{AIOps e Model Context Protocol}}\\[0.5cm]
+    {\Large \textit{Bridge architetturale tra LLM e hypervisor}}\\[2cm] 
 
     \begin{minipage}[t]{0.45\textwidth}
         \begin{flushleft} \large
@@ -39,18 +53,20 @@
             Michele Arnoni\\
             Matricola: 220121
         \end{flushright}
-    \end{minipage}\\[2cm]
+    \end{minipage}\\[1.5cm]
     
-    \vfill % Questo comando spinge il testo successivo verso il fondo della pagina
+    \vfill 
     
-    % Anno Accademico
     {\large Anno Accademico 2025/2026}
 \end{titlepage}
 
- 
+% --- INDICE ---
+\pagenumbering{roman}
 \tableofcontents 
+\cleardoublepage
 
 % --- CAPITOLI ---
+\pagenumbering{arabic}
 \input{chapters/00_abstract.tex}
 \input{chapters/01_introduzione.tex}
 \input{chapters/02_background.tex}
@@ -61,5 +77,7 @@
 \input{chapters/07_conclusioni_e_sviluppi_futuri.tex}
 
 % --- BIBLIOGRAFIA ---
+\cleardoublepage
 \printbibliography[heading=bibintoc, title={Bibliografia}]
+
 \end{document}

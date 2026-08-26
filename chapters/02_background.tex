@@ -37,11 +37,14 @@ Il workflow di un team IT basato sul paradigma \textit{IaC} si compone delle seg
 
 È facile intuire come questo approccio, più strutturato e di impronta fortemente ingegneristica, porti concreti vantaggi in termini di controllo del sistema, robustezza, manutenibilità, resilienza all'errore umano, riproducibilità delle configurazioni e scalabilità del sistema.
 
-Ponendo particolare attenzione alla fase di Provisioning e alle tecnologie che la popolano, è possibile imbattersi in strumenti di automazione specifici al sistema su cui operano, come \textit{AWS CloudFormation}, \textit{Azure Resource Manager} o \textit{Google Cloud Deployment Manager}, oppure in strumenti universali come \textit{Terraform}. Questi strumenti si interfacciano con il sistema tramite \textit{API (Application Programming Interface)} permettendo interazioni dirette e programmate ed evitando le interazioni manuali tramite console.
+Ponendo particolare attenzione alla fase di Provisioning e alle tecnologie che la popolano, è possibile imbattersi in strumenti di automazione specifici al sistema su cui operano, come \textit{AWS CloudFormation}, \textit{Azure Resource Manager} o \textit{Google Cloud Deployment Manager}, oppure in strumenti universali come \textit{Terraform} \cite{Terraform}. Questi strumenti si interfacciano con il sistema tramite \textit{API (Application Programming Interface)} permettendo interazioni dirette e programmate ed evitando le interazioni manuali tramite console.
 
 Questo lavoro di tesi vuole evolvere questi strumenti grazie all'AI, rendendoli più flessibili e potenti, sostituendo il tradizionale layer di comunicazione \textit{API} con un \textit{MCP} e permettendo ad un LLM di dialogare con i sistemi IT.
 
 \section{L'interfacciamento degli LLM: dal ReAct al Tool Calling}
+Con l'avvendo dei primi LLM ogni provider ha provato ad incorporare un modo per poter interfacciare i propri modelli con il mondo esterno e i software tradizionali, che per gli LLM sono interpretati come dei tools.
+Ma ad un certo punto la società Anthropic ha rilasciato un protocollo open-source volto a standardizzare il modo in cui gli \textit{LLM} si interfacciano con i tool di cui hanno bisogno.
+
 
 \section{Limiti degli approcci attuali}
 
