@@ -6,7 +6,7 @@ Tutte le operazioni volte alla gestione delle infrastrutture IT, quali manutenzi
 
 Tradizionalmente, le attività di ITOps venivano gestite in modo prevalentemente manuale. Gli operatori facevano affidamento su cruscotti di monitoraggio statici e sistemi di alert automatizzati basati su parametri preimpostati.
 
-Con l'esplosione dei dati generati dalle infrastrutture moderne (log, metriche, tracce) e la transizione verso architetture a microservizi, questo approccio si è rivelato difficilmente scalabile e con una inefficienza direttamente proporzionale alle dimensioni del sistema.
+Con l'esplosione dei dati generati dalle infrastrutture moderne (log, metriche, tracce) e la transizione verso architetture a microservizi, questo approccio si è rivelato difficilmente scalabile e con un'inefficienza direttamente proporzionale alle dimensioni del sistema.
 
 La frammentazione dei servizi e l'enorme volume di alert possono rendere molto rumorosa e lenta l'identificazione della causa radice (\textit{root cause analysis}) di un disservizio.
 
@@ -39,13 +39,37 @@ Il workflow di un team IT basato sul paradigma \textit{IaC} si compone delle seg
 
 Ponendo particolare attenzione alla fase di Provisioning e alle tecnologie che la popolano, è possibile imbattersi in strumenti di automazione specifici al sistema su cui operano, come \textit{AWS CloudFormation}, \textit{Azure Resource Manager} o \textit{Google Cloud Deployment Manager}, oppure in strumenti universali come \textit{Terraform} \cite{Terraform}. Questi strumenti si interfacciano con il sistema tramite \textit{API (Application Programming Interface)} permettendo interazioni dirette e programmate ed evitando le interazioni manuali tramite console.
 
-Questo lavoro di tesi vuole evolvere questi strumenti grazie all'AI, rendendoli più flessibili e potenti, sostituendo il tradizionale layer di comunicazione \textit{API} con un \textit{MCP} e permettendo ad un LLM di dialogare con i sistemi IT.
+Questo lavoro di tesi vuole evolvere questi strumenti grazie all'AI, rendendoli più flessibili e potenti, integrando un \textit{MCP} come layer di comunicazione verso \textit{API REST} permettendo ad un LLM di dialogare con i sistemi IT.
 
 \section{Interfacce per LLM}
-Con l'avvendo dei primi LLM ogni provider ha provato ad incorporare un modo per poter interfacciare i propri modelli con il mondo esterno e i software tradizionali, che per gli LLM sono interpretati come dei tools.
-Ma ad un certo punto la società Anthropic ha rilasciato un protocollo open-source volto a standardizzare il modo in cui gli \textit{LLM} si interfacciano con i tool di cui hanno bisogno.
+I Large Language Model sono di base incapaci di interagire con software esterni, per superare questi limiti architetturali ogni provider ha sviluppato in autonomia un proprio paradigma di interazione tra cui spicca il modello \textit{ReAct (Reasoning and Acting)} introdotto da Yao et al. \cite{yao2023react}.
+Questo pattern istruisce il modello a produrre un output che alterna in modo iterativo tracce di ragionamento logico (Reasoning) ad azioni specifiche (Acting) rivolte a sistemi esterni, permettendo all'agente di aggiornare dinamicamente il proprio contesto.
 
+L'implementazione tecnica del pattern ReAct si concretizza tramite il meccanismo del \textit{Tool Calling} (o \textit{Function Calling}), un'idea che prevede di iniettare la lista strutturata in formato JSON dei tools a disposizione dell'IA con tanto di descrizione di ogni funzione chiamabile insieme ai suoi parametri.
+
+La pipeline di funzionamento si compone quindi nei seguenti step:
+\begin{itemize}
+    \item \textbf{Decisione:} l'agente determina che per soddisfare una richiesta è necessario interagire con un tool
+    \item \textbf{Invocazione:} l'LLM genera un \textit{payload} JSON contenente l'intenzione di invocare un \textit{tool} specifico e i relativi argomenti tipizzati.
+    \item \textbf{Esecuzione:} l'applicazione chiamante intercetta, gestisce la richiesta e reinietta il risultato nel contesto dell'LLM.
+    \item \textbf{Sintesi} l'LLM riprende con la sua generazione per terminare la sintetizzazione della risposta
+\end{itemize}
 
 \section{Limiti degli approcci attuali}
+Sebbene il \textit{Tool Calling} offra un ponte funzionale tra i modelli generativi e i sistemi IT, la sua implementazione non mediata in ambienti di produzione critici solleva sfide ingegneristiche non trascurabili.
+Questo è particolarmente vero quando l'agente deve operare su un hypervisor \textit{bare-metal} come Proxmox VE, dove l'esecuzione di comandi errati può compromettere interi nodi di virtualizzazione.
+I limiti principali degli approcci antecedenti all'introduzione di protocolli standardizzati possono essere riassunti in tre macro-categorie: sicurezza, determinismo architetturale e manutenibilità delle integrazioni.
 
+Il problema primario risiede nella sicurezza e nella gestione imprevedibile del rischio, strettamente legate al fenomeno delle "allucinazioni" dell'IA.
+Un \textit{Large Language Model}, a causa della sua natura probabilistica, potrebbe generare \textit{payload} JSON formalmente validi ma semanticamente distruttivi.
+Senza un \textit{middleware} dedicato, un'errata interpretazione del contesto potrebbe portare l'agente a invocare azioni irreversibili, come l'arresto forzato o l'eliminazione (\textit{destroy}) di una macchina virtuale in produzione.
+Negli approcci tradizionali risulta complesso implementare un rigoroso \textit{Principio del Minimo Privilegio}, poiché la logica di validazione e filtraggio delle intenzioni pericolose ricade interamente sul client applicativo.
+
+In secondo luogo, l'implementazione \textit{custom} dei \textit{tool} crea un forte accoppiamento (\textit{tight coupling}) tra la logica decisionale dell'agente e le API dell'infrastruttura.
+Gli sviluppatori sono costretti a replicare la gestione dell'autenticazione, la validazione degli schemi e la gestione degli errori (\textit{error handling}) per ogni nuovo framework utilizzato, rendendo l'architettura rigida e poco scalabile.
+
+Infine, le integrazioni convenzionali mancano di un meccanismo per la scoperta dinamica delle funzionalità.
+Solitamente, l'elenco degli strumenti e delle risorse disponibili deve essere inserito staticamente nel prompt di sistema (\textit{hardcoded}).
+Questo impedisce all'infrastruttura di esporre o revocare dinamicamente le capacità operative in base allo stato corrente del server o ai privilegi dell'utente richiedente.
+Questa rigidità strutturale e l'assenza di un perimetro di sicurezza delimitato evidenziano la necessità di un layer di astrazione intermedio tra l'intelligenza artificiale e le API di sistema.
 \section{Rassegna delle tecnologie alternative}
