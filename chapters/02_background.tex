@@ -56,20 +56,31 @@ La pipeline di funzionamento si compone quindi nei seguenti step:
 \end{itemize}
 
 \section{Limiti degli approcci attuali}
-Sebbene il \textit{Tool Calling} offra un ponte funzionale tra i modelli generativi e i sistemi IT, la sua implementazione non mediata in ambienti di produzione critici solleva sfide ingegneristiche non trascurabili.
-Questo è particolarmente vero quando l'agente deve operare su un hypervisor \textit{bare-metal} come Proxmox VE, dove l'esecuzione di comandi errati può compromettere interi nodi di virtualizzazione.
-I limiti principali degli approcci antecedenti all'introduzione di protocolli standardizzati possono essere riassunti in tre macro-categorie: sicurezza, determinismo architetturale e manutenibilità delle integrazioni.
+Sebbene il \textit{Tool Calling} offra un'interfaccia tra i modelli generativi e i sistemi IT, la sua implementazione non filtrata in ambienti di produzione critici solleva sfide ingegneristiche non trascurabili.
+Dal momento in cui un sistema dipendente da un hypervisor \textit{bare-metal} come Proxmox VE ė spesso impiegato in ambito enterprise l'esecuzione di comandi errati può arrecare danni economici importanti.
 
-Il problema primario risiede nella sicurezza e nella gestione imprevedibile del rischio, strettamente legate al fenomeno delle "allucinazioni" dell'IA.
-Un \textit{Large Language Model}, a causa della sua natura probabilistica, potrebbe generare \textit{payload} JSON formalmente validi ma semanticamente distruttivi.
-Senza un \textit{middleware} dedicato, un'errata interpretazione del contesto potrebbe portare l'agente a invocare azioni irreversibili, come l'arresto forzato o l'eliminazione (\textit{destroy}) di una macchina virtuale in produzione.
+La principale causa di comandi distruttivi deriva dal fenomeno delle "allucinazioni" che può colpire un qualsiasi LLM o da un prompt ambiguo non deterministicamente eseguibile.
+
+Un \textit{Large Language Model}, a causa della sua natura probabilistica, potrebbe generare \textit{payload} JSON formalmente validi ma semanticamente dannosi.
+
 Negli approcci tradizionali risulta complesso implementare un rigoroso \textit{Principio del Minimo Privilegio}, poiché la logica di validazione e filtraggio delle intenzioni pericolose ricade interamente sul client applicativo.
 
-In secondo luogo, l'implementazione \textit{custom} dei \textit{tool} crea un forte accoppiamento (\textit{tight coupling}) tra la logica decisionale dell'agente e le API dell'infrastruttura.
-Gli sviluppatori sono costretti a replicare la gestione dell'autenticazione, la validazione degli schemi e la gestione degli errori (\textit{error handling}) per ogni nuovo framework utilizzato, rendendo l'architettura rigida e poco scalabile.
+In secondo luogo, l'implementazione \textit{custom} dei \textit{tool} crea un forte accoppiamento (\textit{tight coupling}) tra la logica decisionale dell'agente e le API dell'infrastruttura con il rischio di trovarsi con un'architettura poco scalabile e molto rigida.
 
-Infine, le integrazioni convenzionali mancano di un meccanismo per la scoperta dinamica delle funzionalità.
-Solitamente, l'elenco degli strumenti e delle risorse disponibili deve essere inserito staticamente nel prompt di sistema (\textit{hardcoded}).
+Infine, le integrazioni convenzionali mancano di un meccanismo per l'assegnazione dinamica delle funzionalità in quanto solitamente l'elenco degli strumenti e delle risorse disponibili deve essere inserito staticamente nel prompt di sistema (\textit{hardcoded}).
 Questo impedisce all'infrastruttura di esporre o revocare dinamicamente le capacità operative in base allo stato corrente del server o ai privilegi dell'utente richiedente.
 Questa rigidità strutturale e l'assenza di un perimetro di sicurezza delimitato evidenziano la necessità di un layer di astrazione intermedio tra l'intelligenza artificiale e le API di sistema.
+
 \section{Rassegna delle tecnologie alternative}
+Per ovviare ai limiti del pattern ReAct e del tool calling in un contesto di produzione critica, esistono diverse tecnologie e approcci alternativi che potrebbero essere considerati. Alcune di queste includono:
+
+\textbf{API Gateways:} un gateway API può fungere da intermediario tra l'LLM e le API di sistema, garantendo un livello di sicurezza aggiuntivo e consentendo il controllo di accesso e l'autenticazione. Gli API gateways supportano anche l'aggregazione di dati da più servizi, il routing di chiamate e la gestione di errori, riducendo la complessità di sviluppo e l'accoppiamento tra l'agente e le API.
+
+\textbf{Orchestratori e Automazioni:} strumenti come Ansible, Puppet, e SaltStack, possono essere utilizzati per orchestrazione di flussi di lavoro e automazione di task. Questi strumenti possono essere utilizzati per creare pipeline di lavoro predefinite e sicure per l'invocazione di specifici comandi sul sistema.
+
+\textbf{Microservizi e FaaS (Function as a Service):} implementare una serie di microservizi o funzioni specifiche che gestiscono le operazioni critiche può rendere il sistema più modulare e sicuro. Questo approccio permette di separare l'aspetto decisionale del modello di linguaggio dalle operazioni concrete sul sistema, rendendo più facile implementare il principio del minimo privilegio e un accesso condizionale. È però importante considerare che il demando della traduzione delle intenzioni dell'IA e la validazione dei payload JSON interamente al codice \textit{custom} comporta un notevole onere di sviluppo e manutenzione.
+
+\textbf{Middleware di sicurezza:} esistono soluzioni specifiche di middleware come Keycloak o OAuth2 Proxy che possono essere utilizzate per aggiungere una layer di sicurezza aggiuntivo tra l'LLM e le API di sistema. Questi strumenti possono gestire l'accesso e l'autenticazione di sicurezza, riducendo il rischio di allucinazioni o comportamenti ambigui.
+
+\textbf{Sistemi a Plugin Proprietari:} i principali provider di LLM di frontiera hanno tentato di risolvere il problema incorporando protocolli proprietari (come gli ormai deprecati OpenAI Plugins),che permettevano al modello di interrogare API esterne tramite la lettura di file di specifica (come OpenAPI). Tali soluzioni, seppur funzionali, generano un forte \textit{vendor lock-in} e risultano inadatte ad architetture on-premise chiuse come i cluster Proxmox.
+
