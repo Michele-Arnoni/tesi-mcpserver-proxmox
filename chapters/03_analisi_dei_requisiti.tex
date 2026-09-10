@@ -1,5 +1,55 @@
 \chapter{Analisi dei Requisiti}
 
 \section{Requisiti Funzionali}
+\subsection{Interfacciamento con Hypervisor e Protocollo MCP}
+\begin{itemize}
+    \item \textbf{RF1 - Esposizione dinamica dei tool (\textit{Tool Discovery}):} Il layer MCP deve esporre in modo dinamico i tool per le interazioni con l'infrastruttura IT in formato \textit{JSON Schema}.
+    
+    \item \textbf{RF2 - Layer di traduzione (JSON-RPC verso REST):} Il layer MCP si occupa di tradurre dei payload JSON-RPC generati dall'LLM e controllare se conformi ai suoi standard per poi inoltrare le eventuali richieste REST API all'hypervisor.
+    
+    \item \textbf{RF3 - Formattazione dei risultati per il contesto del LLM client:} Il server MCP dovrà restituire un output formattato in modo strutturato e fruibile per il client LLM.
+\end{itemize}
+
+\subsection{Ispezione e Monitoraggio dell'Infrastruttura (Read-Only)}
+\begin{itemize}
+    \item \textbf{RF4 - Monitoraggio dello stato hardware e logico del sistema:} Il sistema deve offrire la possibilità di ricevere una panoramica completa del sistema in termini di risorse allocate ed occupate in tempo reale dai nodi nonchè dalle VM e Container in servizio.
+    
+    \item \textbf{RF5 - Tracciamento delle transazioni (\textit{Audit Logging}):} Il layer MCP deve mantenere uno storico di tutte le richieste ricevute in termini di utente, data e ora, JSON-RPC, API invocate per soddisfare la richiesta e codice HTTP ricevuto.
+    
+    \item \textbf{RF6 - Sistema di Notifica:} All'atto di una richiesta che necessita intervento umano, il sistema deve inviare un alert all'utente interessato.
+\end{itemize}
+
+\subsection{Gestione del Ciclo di Vita delle Istanze (Operazioni di Stato)}
+\begin{itemize}
+    \item \textbf{RF7 - Controllo dell'alimentazione (\textit{Power Management}):} Devono essere esposti strumenti di controllo dell'alimentazione di VM e Container in modo sicuro (\textit{boot, shutdown, reboot}).
+    
+    \item \textbf{RF8 - Provisioning di base:} Devono essere esposti strumenti per la creazione, gestione dinamica delle risorse allocate e distruzione controllata di VM e Container, anche tramite template registrati sull'hypervisor.
+    
+    \item \textbf{RF9 - Gestione degli snapshot:} Prima di ogni intervento di manutenzione deve essere consigliata dall'LLM la possibilità di eseguire uno snapshot del sistema, consentendo un eventuale ripristino \textit{rollback} all'occorrenza.
+\end{itemize}
+
+\subsection{Sicurezza e Controllo d'Esecuzione}
+\begin{itemize}
+    \item \textbf{RF10 - Autenticazione presso l'hypervisor e gestione dei permessi:} Il layer MCP deve caricare le credenziali d'accesso dell'utente attraverso variabili d'ambiente per poi mantenere un token di autenticazione valido per interagire con l'hypervisor. Le credenziali non devono transitare tramite il contesto conversazionale dell'LLM.
+    
+    \item \textbf{RF11 - Intercettazione e blocco di comandi distruttivi:} Il sistema deve saper intercettare e richiedere conferma all'utente nel caso certi prompt prevedano comandi possibilmente distruttivi o che possano apportare modifiche architetturali importanti.
+\end{itemize}
 
 \section{Requisiti Non Funzionali}
+\begin{itemize}
+    \item \textbf{RNF1 - Modularità ed Estendibilità:} Deve essere possibile interfacciare diversi LLM con diversi Hypervisor e prevedere un'architettura tale da rendere semplice aggiungere o deprecare funzionalità dell'MCP Server.
+
+    \item \textbf{RNF2 - Efficienza delle prestazioni (latenza):} La piattaforma deve introdurre il minimo \textit{overhead} computazionale e garantire che un certo prompt esegua i comandi sul sistema e riceva un output in un tempo trascurabile.
+    
+    \item \textbf{RNF3 - Disponibilità (\textit{Availability}):} La piattaforma deve garantire un alto livello di disponibilità anche sotto elevato stress di carico.
+    
+    \item \textbf{RNF4 - Concorrenza:} La piattaforma deve prevedere paradigmi di gestione delle concorrenze e operzioni asincrone non bloccanti.
+
+    \item \textbf{RNF5 - Tolleranza ai guasti (\textit{Fault Tolerance}:} L'architettura deve essere tale da implementare una gestione robusta degli imprevisti, quali possibili timeout di risposta, errori o JSON malformati e incoerenti.
+    
+    \item \textbf{RNF6 - Consistenza e Pattern Saga:} Logicamente ove un prompt preveda più comandi, esso deve essere considerato eseguito solo se tutti i comandi hanno successo, ma in termini pratici diventa ingegneristicamente complesso trasformare un prompt in una trasizione (\textit{ACID}). Per questo motivo, bisogna quindi che il sistema interrompa eventuali sequenze di comandi ne caso uno dovesse fallire e proporre eventualmente delle \textit{operazioni di rollback}.
+
+    \item \textbf{RNF7 - Sicurezza e supervisione (\textit{Human-in-the-Loop}):} Bisogna che azioni critiche vengano monitorate dall'utente in tempo reale e all'occorenza validate da esso. Tutte le azioni possibilmente distruttive o che possano apportare modifiche profonde al sistema devono ricevere conferma da un utente umano. Deve inoltre essere previsto, quando possibile, il tempo di down del sistema su alcuni comandi complessi ed esporre la scelta all'utente.
+
+    \item \textbf{RNF8 - Manutenibilità:} Il codice deve essere strutturato affinchè in caso di manutenzione il sistema rimanga in down in tempi brevi. Deve essere implementato un sistema di logging granulare sullo storico di ogni prompt per utente e sulle chiamate API che ne sono conseguite in modo da avere il controllo completo e documentato su tutte le azioni dell'LLM.
+\end{itemize}
