@@ -1,4 +1,93 @@
 \chapter{Analisi dei Requisiti}
+\section{Attori e Casi d'Uso}
+A scopo di contestualizzazione del progetto è necessario presentare i principali Attori che interagiscono con il Server MCP e i principali scenari d'uso:
+
+\subsection{Attori}
+\begin{itemize}
+    \item \textbf{Hypervisor bare-metal Proxmox VE:} Ambiente di virtualizzazione installato direttamente sull'hardware con cui si ha necessità di interagire.
+    
+    \item \textbf{Client LLM:} Applicazione client su cui è eseguita l'interfaccia del Large Language Model incaricato di tradurre le richieste dell'utente in linguaggio naturale a payload JSON-RPC.
+    
+    \item \textbf{Utente (Amministratore di Sistema):} Utente che deve eseguire transazioni di gestione e manutenzione sull'hypervisor tramite il linguaggio naturale.
+\end{itemize}
+
+\subsection{Casi d'Uso Principali}
+I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
+\begin{itemize}
+    \item \textbf{UC1 - Ispezione e monitoraggio dell'infrastruttura:}
+    L'Utente richiede una panoramica sullo stato operativo o sulle risorse del cluster di virtualizzazione attraverso il Client LLM.
+    \begin{itemize}
+        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor Proxmox VE (sistema secondario).
+        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST di Proxmox VE tramite token segregato.
+        \item \textbf{Flusso Principale degli Eventi:}
+        \begin{enumerate}
+            \item L'Utente formula una richiesta sullo stato di una o più risorse.
+            \item L'LLM interpreta la richiesta, seleziona i tool necessari esposti dall'MCP e genera un corrispondente payload JSON-RPC per il Server MCP.
+            \item Il Server MCP intercetta e valida la richiesta in JSON-RPC (\textit{RF2}).
+            \begin{itemize}
+                \item Se il payload JSON-RPC risulta sintatticamente corretto il sistema continua con la gestione della richiesta.
+                \item Se il payload JSON-RPC risulta sintatticamente errato il sistema restituisce un messaggio di errore JSON-RPC all'LLM.
+            \end{itemize}
+            \item Il Server MCP invoca gli endpoint REST dell'Hypervisor necessari a soddisfare la richiesta.
+            \item Proxmox VE elabora la richiesta ed emette la risposta con codice HTTP 200 contenente le metriche grezze.
+            \begin{itemize}
+                \item Se l'hypervisor risulta irraggiungibile viene restituito un errore di Connection Timeout.
+            \end{itemize}
+            \item Il Server MCP estrae e normalizza i dati salienti, restituendoli al Client LLM sotto forma di \textit{Observation} strutturata (\textit{RF3, RF4}).
+            \item Il Client LLM sintetizza i dati ricevuti e genera la risposta in linguaggio naturale per l'Utente.
+        \end{enumerate}
+        \item \textbf{Postcondizioni:} Nessuna modifica di stato viene apportata all'infrastruttura; l'operazione di lettura e le relative chiamate API vengono registrate nel log di sistema (\textit{RF5}).
+    \end{itemize}
+
+    \item \textbf{UC2 - Gestione del ciclo di vita e provisioning delle istanze (\textit{VM o Container LXC}):}
+    L'Utente desidera la creazione di una istanza di VM o Container LXC specifica.
+    \begin{itemize}
+        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor Proxmox VE (sistema secondario).
+        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST di Proxmox VE tramite token segregato.
+        \item \textbf{Flusso Principale degli Eventi:}
+        \begin{enumerate}
+            \item L'Utente formula la richiesta di voler creare una istanza di VM o Container LXC all'LLM, comunicando nella richiesta anche quale risorse si vogliono allocare.
+            \item L'LLM interpreta la richiesta, seleziona i tool necessari esposti dall'MCP e genera un corrispondente payload JSON-RPC per il Server MCP.
+            \begin{itemize}
+                \item Nel caso non siano state definite tutte le risorse necessarie, l'LLM provvede a richiederle all'Utente prima di compilare un JSON-RPC.
+            \end{itemize}
+            \item Il Server MCP intercetta e valida la richiesta in JSON-RPC (\textit{RF2}).
+            \begin{itemize}
+                \item Se il payload JSON-RPC risulta sintatticamente corretto il sistema continua con la gestione della richiesa.
+                \item Se il payload JSON-RPC risulta sintatticamente errato il sistema restituisce un messaggio di errore JSON-RPC all'LLM.
+            \end{itemize}
+            \item Il Server MCP invoca gli endpoint REST dell'Hypervisor necessari a soddisfare la richiesta.
+            \item Proxmox VE elabora la richiesta ed emette la risposta con codice HTTP 200 contenente l'esito della richiesta.
+            \begin{itemize}
+                \item Se l'hypervisor risulta irraggiungibile viene restituito un errore di Connection Timeout.
+            \end{itemize}
+            \item Il Server MCP estrae e normalizza l'esito dell'operazione, restituendolo al Client LLM sotto forma di \textit{Observation} strutturata (\textit{RF3, RF4}).
+            \item Il Client LLM sintetizza i dati ricevuti e genera la risposta in linguaggio naturale per l'Utente.
+        \end{enumerate}
+        \item \textbf{Postcondizioni:} Le altre istanze di virtualizzazione non vengono alterate, le relative chiamate API vengono registrate nel log di sistema (\textit{RF5}).
+    \end{itemize}
+    
+    \item \textbf{UC3 - Esecuzione controllata di operazioni critiche (\textit{Human-in-the-Loop}):}
+    L'Utente desidera l'eliminazione di una certa istanza di virtualizzazione.
+    \begin{itemize}
+        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor Proxmox VE (sistema secondario).
+        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST di Proxmox VE tramite token segregato.
+        \item \textbf{Flusso Principale degli Eventi:}
+        \begin{enumerate}
+            \item L'Utente formula la richiesta di voler eliminare una certa istanza di virtualizzazione.
+            \item L'LLM interpreta la richiesta, seleziona i tool necessari esposti dall'MCP e genera un corrispondente payload JSON-RPC per il Server MCP.
+            \item Il Server MCP intercetta e valida la richiesta in JSON-RPC (\textit{RF2}), ma riconosce in essa la presenza di comandi critici per soddisfarla (\textit{RF11}).
+            \item Il Server sospende l'esecuzione dell'API verso Proxmox e restituisce all'LLM una richiesta formale di validazione, impedendo l'azione silente (\textit{RF6}).
+            \item L'LLM informa l'Utente che è necessaria una conferma esplicita e restituisce un riepilogo dell'istanza che verrà eliminata, al fronte di prevedere errori umani.
+            \item L'Utente esamina il riepilogo ed eventualmente conferma la richiesta.
+            \item L'LLM inoltra la conferma al Server MCP in attesa.
+            \item Il Server MCP una volta validata la conferma procede con l'inoltro dei comandi verso l'Hypervisor.
+            \item L'Hypervisor effettua l'eliminazione e restituisce l'esito al Server MCP.
+            \item Il Server MCP comunica l'effettiva eliminazione all'LLM che a sua volta notifica l'utente.
+        \end{enumerate}
+        \item \textbf{Postcondizioni:} L'istanza interessata viene eliminata, le istanze di virtualizzazione non interessate non vengono alterate, le relative chiamate API inclusa la conferma vengono registrate nel log di sistema (\textit{RF5}).
+    \end{itemize}
+\end{itemize}
 
 \section{Requisiti Funzionali}
 \subsection{Interfacciamento con Hypervisor e Protocollo MCP}
