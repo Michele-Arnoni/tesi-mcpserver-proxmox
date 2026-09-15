@@ -4,7 +4,7 @@ A scopo di contestualizzazione del progetto è necessario presentare i principal
 
 \subsection{Attori}
 \begin{itemize}
-    \item \textbf{Hypervisor bare-metal Proxmox VE:} Ambiente di virtualizzazione installato direttamente sull'hardware con cui si ha necessità di interagire.
+    \item \textbf{Hypervisor bare-metal:} Ambiente di virtualizzazione installato direttamente sull'hardware con cui si ha necessità di interagire.
     
     \item \textbf{Client LLM:} Applicazione client su cui è eseguita l'interfaccia del Large Language Model incaricato di tradurre le richieste dell'utente in linguaggio naturale a payload JSON-RPC.
     
@@ -17,8 +17,8 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
     \item \textbf{UC1 - Ispezione e monitoraggio dell'infrastruttura:}
     L'Utente richiede una panoramica sullo stato operativo o sulle risorse del cluster di virtualizzazione attraverso il Client LLM.
     \begin{itemize}
-        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor Proxmox VE (sistema secondario).
-        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST di Proxmox VE tramite token segregato.
+        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor (sistema secondario).
+        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST dell'Hypervisor tramite token segregato.
         \item \textbf{Flusso Principale degli Eventi:}
         \begin{enumerate}
             \item L'Utente formula una richiesta sullo stato di una o più risorse.
@@ -29,7 +29,7 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
                 \item Se il payload JSON-RPC risulta sintatticamente errato il sistema restituisce un messaggio di errore JSON-RPC all'LLM.
             \end{itemize}
             \item Il Server MCP invoca gli endpoint REST dell'Hypervisor necessari a soddisfare la richiesta.
-            \item Proxmox VE elabora la richiesta ed emette la risposta con codice HTTP 200 contenente le metriche grezze.
+            \item L'Hypervisor elabora la richiesta ed emette la risposta con codice HTTP 200 contenente le metriche grezze.
             \begin{itemize}
                 \item Se l'hypervisor risulta irraggiungibile viene restituito un errore di Connection Timeout.
             \end{itemize}
@@ -42,8 +42,8 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
     \item \textbf{UC2 - Gestione del ciclo di vita e provisioning delle istanze (\textit{VM o Container LXC}):}
     L'Utente desidera la creazione di una istanza di VM o Container LXC specifica.
     \begin{itemize}
-        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor Proxmox VE (sistema secondario).
-        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST di Proxmox VE tramite token segregato.
+        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor (sistema secondario).
+        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST dell'Hypervisor tramite token segregato.
         \item \textbf{Flusso Principale degli Eventi:}
         \begin{enumerate}
             \item L'Utente formula la richiesta di voler creare una istanza di VM o Container LXC all'LLM, comunicando nella richiesta anche quale risorse si vogliono allocare.
@@ -57,7 +57,7 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
                 \item Se il payload JSON-RPC risulta sintatticamente errato il sistema restituisce un messaggio di errore JSON-RPC all'LLM.
             \end{itemize}
             \item Il Server MCP invoca gli endpoint REST dell'Hypervisor necessari a soddisfare la richiesta.
-            \item Proxmox VE elabora la richiesta ed emette la risposta con codice HTTP 200 contenente l'esito della richiesta.
+            \item L'Hypervisor elabora la richiesta ed emette la risposta con codice HTTP 200 contenente l'esito della richiesta.
             \begin{itemize}
                 \item Se l'hypervisor risulta irraggiungibile viene restituito un errore di Connection Timeout.
             \end{itemize}
@@ -68,16 +68,16 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
     \end{itemize}
     
     \item \textbf{UC3 - Esecuzione controllata di operazioni critiche (\textit{Human-in-the-Loop}):}
-    L'Utente desidera l'eliminazione di una certa istanza di virtualizzazione.
+    L'Utente desidera l'eliminazione di una certa istanza di virtualizzazione (Figura \ref{fig:sequence_diagram_uc3}).
     \begin{itemize}
-        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor Proxmox VE (sistema secondario).
-        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST di Proxmox VE tramite token segregato.
+        \item \textbf{Attori Coinvolti:} Utente (iniziatore), Client LLM (mediatore), Hypervisor (sistema secondario).
+        \item \textbf{Precondizioni:} Il Server MCP è attivo, in ascolto sul canale di trasporto designato e autenticato con successo verso l'API REST dell'Hypervisor tramite token segregato.
         \item \textbf{Flusso Principale degli Eventi:}
         \begin{enumerate}
             \item L'Utente formula la richiesta di voler eliminare una certa istanza di virtualizzazione.
             \item L'LLM interpreta la richiesta, seleziona i tool necessari esposti dall'MCP e genera un corrispondente payload JSON-RPC per il Server MCP.
             \item Il Server MCP intercetta e valida la richiesta in JSON-RPC (\textit{RF2}), ma riconosce in essa la presenza di comandi critici per soddisfarla (\textit{RF11}).
-            \item Il Server sospende l'esecuzione dell'API verso Proxmox e restituisce all'LLM una richiesta formale di validazione, impedendo l'azione silente (\textit{RF6}).
+            \item Il Server sospende l'esecuzione dell'API verso l'Hypervisor e restituisce all'LLM una richiesta formale di validazione, impedendo l'azione silente (\textit{RF6}).
             \item L'LLM informa l'Utente che è necessaria una conferma esplicita e restituisce un riepilogo dell'istanza che verrà eliminata, al fronte di prevedere errori umani.
             \item L'Utente esamina il riepilogo ed eventualmente conferma la richiesta.
             \item L'LLM inoltra la conferma al Server MCP in attesa.
