@@ -40,17 +40,27 @@ Di seguito una panoramica del flusso di funzionamento del sistema tramite la rap
 \end{figure}
 
 \subsection{Modello di Comunicazione}
-I dati attraversano la pipeline dei moduli tramite diversi cambi di protocollo affinchè ogni modulo possa interpretare le richieste in modo corretto.
+I dati attraversano la pipeline dei moduli tramite diversi cambi di protocollo affinché ogni modulo possa interpretare le richieste in modo corretto.
 \begin{itemize}
     \item \textbf{Utente $\longleftrightarrow$ Client LLM (Linguaggio Naturale):} L'interazione avviene tramite l'interfaccia conversazionale; l'operatore esprime gli intenti operativi o di diagnostica senza dover conoscere la sintassi delle API sottostanti.
     
     \item \textbf{Client LLM $\longleftrightarrow$ Server MCP (Protocollo JSON-RPC 2.0):} Il modello linguistico converte l'intento dell'utente in invocazioni strutturate di tool (\textit{Tool Calls}) serializzate in payload JSON-RPC conformi alla specifica MCP, scambiate tipicamente tramite canali di standard I/O (\texttt{stdio}) o Server-Sent Events (SSE).
     
-    \item \textbf{Server MCP $\longleftrightarrow$ Hypervisor Proxmox VE (REST API su HTTPS):} Il middleware traduce le chiamate JSON-RPC ricevute in richieste HTTP formalizzate (verbi \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE}) indirizzate agli endpoint dell'API REST di Proxmox VE, includendo nei relativi header le credenziali di autenticazione (\textit{API Token}).
+    \item \textbf{Server MCP $\longleftrightarrow$ Hypervisor Proxmox VE (REST API su HTTPS):} Il Middleware traduce le chiamate JSON-RPC ricevute in richieste HTTP formalizzate (verbi \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE}) indirizzate agli endpoint dell'API REST di Proxmox VE, includendo nei relativi header le credenziali di autenticazione (\textit{API Token}).
 \end{itemize}
 
 \section{Scelte progettuali}
-A questo punto è necessario introdurre lo stack tecnologico di implementazione e di ambiene:
+A questo punto è necessario introdurre lo stack tecnologico di implementazione e di ambiente:
 \begin{itemize}
-    \item textbf{Python 3.11+: } La scelta sul linguaggio di sviluppo per il Server MCP è ricaduta su \textbf{Python} (versione 3.11+) per la sua ricca disponibilità di librerie 
+    \item \textbf{Proxmox VE:} La scelta dell'hypervisor è ricaduta su una soluzione open-source ampiamente utilizzata sia in ambito enterprise che in quello consumer, corredata dall'esposizione di una REST API solida e ben documentata. Quest'ultimo rappresenta un requisito fondamentale affinché il middleware possa orchestrare le risorse.
+
+    \item \textbf{Python 3.11+:} Per quanto riguarda il linguaggio di implementazione del middleware, è stato reputato appropriato l'uso di Python (versione 3.11+) per le qualità che lo contraddistinguono come lo standard \textit{de facto} per lo sviluppo nell'ambito dell'\textit{AI} e dell'automazione di sistema. La sua adozione ha permesso di sfruttare un ecosistema di librerie ormai maturo per il networking (richieste SSH, HTTP), in particolare:
+    \begin{itemize}
+        \item \textit{proxmoxer:} Questo wrapper traduce l'albero degli endpoint REST di Proxmox in chiamate a oggetti Python dinamici, evitando la gestione manuale degli header dei pacchetti, dei token di autenticazione e del parsing JSON.
+        \item \textit{paramiko:} L'uso di questa libreria rappresenta una soluzione architetturale per aggirare i limiti delle REST API esposte, permettendo l'esecuzione di comandi da riga di comando (\textit{CLI}) tramite il protocollo SSHv2, utile all'instaurazione di tunnel criptati host-to-guest.
+    \end{itemize}
+    
+    \item \textbf{Anthropic MCP SDK:} Come già discusso nei capitoli precedenti, l'esposizione dei comandi Python all'LLM è delegata al protocollo MCP di Anthropic tramite l'adozione dell'SDK ufficiale. Questo gestisce nativamente il ciclo di vita del server MCP, la negoziazione delle capacità, l'invocazione dei tool e la formattazione in JSON-RPC del flusso di comunicazione.
+    
+    \item \textbf{Claude Client:} Le interazioni Utente-LLM avvengono tramite il client ufficiale di Claude per desktop, che permette l'iniezione del server MCP tramite un file locale di configurazione JSON.
 \end{itemize}
