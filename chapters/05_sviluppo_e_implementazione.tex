@@ -1,5 +1,51 @@
 \chapter{Sviluppo e implementazione}
+In questo capitolo vengono analizzate le fasi di sviluppo e implementazione del middleware basato sul Model Context Protocol (MCP). Si descrive come avviene la traduzione dei requisiti precedentemente definiti nelle fasi di desing in moduli software concreti e sulle strategie adottate per superare i limiti infrastrutturali emersi durante le fasi di test.
 
-\section{Funzioni chiave}
+\section{Implementazione dei Casi d'Uso (UC)}
+Le funzionalità del Server MCP sono state implementate sulla base dei casi d'uso definiti nel  \textit{Capitolo 3}.
+\begin{itemize}
+\item \textbf{UC1 - Ispezione e monitoraggio dell’infrastruttura:} Il tool messo a disposizione dell'LLM per la ricezione di una panoramica di tutte le istanze di virtualizzazione è stato chiamato \verb|list_vms()|.
+\item \textbf{UC2 - Gestione del ciclo di vita e provisioning delle istanze (VM o Container LXC ):}
+\item \textbf{UC3 - Esecuzione controllata di operazioni critiche (Human-in-the-Loop):}
+\end{itemize}
+
+\section{Soddisfazione dei Requisiti}
+Approcci di implementazione dei requisiti delineati in fase di design nel \textit{Capitolo 3}.
+
+\subsection{Requisiti Funzionali}
+\begin{itemize}
+    \item \textbf{Interfacciamento e Traduzione (RF1, RF2, RF3):} L'esposizione dinamica dei tool è gestita nativamente dall'SDK MCP, che elabora le funzioni Python in formato JSON Schema. Il layer di traduzione si occupa di processare i payload JSON-RPC generati dall'LLM e di formattare le risposte dell'hypervisor in strutture fruibili per il contesto del modello.
+    \item \textbf{Monitoraggio (RF4):} La capacità di ispezione (Read-Only) è soddisfatta dal tool \texttt{list\_vms}. Questo strumento interroga le API REST di Proxmox restituendo uno snapshoot delle risorse attualmente allocate e dello stato di nodi e istanze di virtualizzazione.
+    \item \textbf{Tracciamento delle transazioni (RF5):} Il requisito di Audit Logging è soddisfatto dall'infrastruttura del Server MCP che, operando come intermediario, può intercettare e registrare tramite il modulo \texttt{logging} di Python ogni transazione JSON-RPC in ingresso e le relative invocazioni REST in uscita, garantendo uno storico documentato delle operazioni.
+    \item \textbf{Ciclo di Vita e Provisioning (RF7, RF8):} Le operazioni di alimentazione (boot, shutdown, reboot) e di provisioning sono implementate i tool \texttt{manage\_vm\_state} e \texttt{clone\_resource}, quest'ultimo in particolare permette la creazione di istanze di virtualizzazione tramite clonazione di istanze esistenti, dal momento in cui una creazione da zero necessiterebbe di troppi parametri complessi e alta probabilità di allucinazioni da parte dell'LLM.
+    \item \textbf{Gestione degli Snapshot (RF9):} La raccomandazione preventiva degli snapshot non è delegata a controlli hardware rigidi, ma è implementata a livello semantico tramite \textit{Prompt Engineering}. Le docstring dei tool critici istruiscono il modello LLM a suggerire proattivamente all'utente l'esecuzione di un backup prima di procedere con alterazioni di stato, sfruttando le capacità di ragionamento (ReAct) dell'agente.
+    \item \textbf{Sicurezza, Autenticazione e Controllo (RF6, RF10, RF11):} Per soddisfare il requisito di autenticazione (RF10), le credenziali vengono caricate attraverso variabili d'ambiente locali, evitando il loro transito nel contesto conversazionale dell'LLM. Il blocco di comandi distruttivi (RF11) e l'attivazione del sistema di alert verso l'utente (RF6) sono garantiti dall'adozione del pattern Human-in-the-Loop che delega al Client la notifica all'utente.
+\end{itemize}
+
+\subsection{Requisiti Non Funzionali}
+\begin{itemize}
+    \item \textbf{Modularità ed Estendibilità (RNF1):} Il protocollo MCP disaccoppia logicamente l'LLM dalle API di sistema. Questa astrazione permette di interfacciare il middleware con diversi Client LLM e di aggiungere o deprecare funzionalità indipendentemente dal modello che dovrà interafgire con esso.
+    \item \textbf{Efficienza (RNF2):} L'implementazione del middleware introduce un overhead computazionale minimo. L'utilizzo del protocollo standardizzato JSON-RPC garantisce che le invocazioni di sistema avvengano con tempi di latenza trascurabili.
+    \item \textbf{Concorrenza e Disponibilità (RNF3, RNF4):} La gestione delle operazioni asincrone e non bloccanti è garantita nativamente dal design dell'Anthropic MCP SDK. Sfruttando la libreria \texttt{asyncio} di Python, il server è in grado di processare chiamate concorrenti senza bloccare il thread principale, assicurando un alto livello di disponibilità (Availability) anche in scenari di interazione rapida e ripetuta.
+    \item \textbf{Tolleranza ai guasti (RNF5):} La gestione degli imprevisti (come timeout di rete o JSON incoerenti) è assicurata dai classici costrutti \texttt{try...except}. Mentre le eccezioni e i codici di errore HTTP non interrompono il ciclo di vita del server, anzi vengono incapsulati e restituiti all'LLM come una normale rispota, sotto forma di errore leggibile, delegando all'agente la generazione di una strategia risolutiva da proporre all'utente o eventualmente una semplice argomentazione sull'errore incontrato.
+    \item \textbf{Consistenza e Pattern Saga (RNF6):} In assenza di transazioni ACID tradizionali, la consistenza è orchestrata dall'LLM stesso. Qualora un comando in una sequenza dovesse fallire (restituendo un'eccezione dal middleware), l'LLM interrompe autonomamente la catena di esecuzione, informando l'utente e proponendo azioni di rollback mirate, emulando così il comportamento del \textit{Pattern Saga}.
+    \item \textbf{Sicurezza e Supervisione (RNF7):} L'architettura esclude l'esecuzione autonoma di alterazioni di stato critiche. L'infrastruttura forza l'integrazione dell'utente nel flusso operativo (Human-in-the-Loop), garantendo la convalida manuale di ogni operazione potenzialmente distruttiva.
+    \item \textbf{Manutenibilità e Logging (RNF8):} L'uso dei decoratori Python (es. \texttt{@mcp.tool()}) rende il sistema estremamente modulare e manutenibile. L'aggiunta, la modifica o la deprecazione di uno strumento avviene in modo isolato, permettendo di ridurre al minimo i tempi di inattività (downtime) durante gli aggiornamenti del codice.
+\end{itemize}
+
+\section{Dettagli operativi}
+In questo paragrafo vengono citati alcuni particolari sul funzionamento dell'intero sistema e vengono colmati possibili dubbi su alcune dinamiche di contorno.
+\begin{itemize}
+    \item \textbf{File di configurazione:} Il percorso del file Python dell'MCP Server viene passato come variabile d'ambiente nel file di configurazione
+    \item \textbf{Gestione delle credenziali:}
+    \item \textbf{Deferred tools:}
+    \item \textbf{Docstring:}
+    \item \textbf{Struttura dei return:}
+\end{itemize}
 
 \section{Sfide tecniche}
+\begin{itemize}
+\item \textbf{Limiti delle REST API}
+\item \textbf{Barriere di ambiente}
+\item \textbf{Gestione delle eccezioni}
+\end{itemize}
