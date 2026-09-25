@@ -4,9 +4,14 @@ In questo capitolo vengono analizzate le fasi di sviluppo e implementazione del 
 \section{Implementazione dei Casi d'Uso (UC)}
 Le funzionalità del Server MCP sono state implementate sulla base dei casi d'uso definiti nel  \textit{Capitolo 3}.
 \begin{itemize}
-\item \textbf{UC1 - Ispezione e monitoraggio dell’infrastruttura:} Il tool messo a disposizione dell'LLM per la ricezione di una panoramica di tutte le istanze di virtualizzazione è stato chiamato \verb|list_vms()|.
-\item \textbf{UC2 - Gestione del ciclo di vita e provisioning delle istanze (VM o Container LXC ):}
-\item \textbf{UC3 - Esecuzione controllata di operazioni critiche (Human-in-the-Loop):}
+    \item \textbf{UC1 - Ispezione e monitoraggio dell’infrastruttura:} Il tool messo a disposizione dell'LLM per la ricezione di una panoramica di tutte le istanze di virtualizzazione è stato chiamato \texttt{list\_vms()}. Recupera la lista di tutte le Macchine Virtuali (VM) e i container (LXC)
+    presenti sul server Proxmox, inclusi i loro ID, nomi e lo stato di accensione.
+    \item \textbf{UC2 - Gestione del ciclo di vita e provisioning delle istanze (VM o Container LXC ):} Questo caso d'uso è stato suddiviso in due tool:
+    \begin{itemize}
+        \item \texttt{manage\_vm\_state} permette di gestire il ciclo di vita delle istanze tramite i comandi di \texttt{start}, \texttt{stop} e \texttt{reboot}.
+        \item \texttt{clone\_resource} permette la creazione di una nuova istanza di virtualizzazione tramite clonazione di una esistente.
+    \end{itemize}
+    \item \textbf{UC3 - Esecuzione controllata di operazioni critiche (Human-in-the-Loop):} All'interno di questo caso d'uso sono inclusi i tool già descritti \texttt{manage\_vm\_state} e \texttt{clone\_resource}, ma il più esplicativo è il tool \texttt{execute\_cmd}, che consente di eseguire comandi arbitrari CLI direttamente sul nodo tramite SSH, ma ovviamente ha un livello altissimo di criticità in quanto il rischio di allucinazioni può intaccare concretamente il sistema, per questo nelle \textit{docstring} del tool è esplicitamente richiesto all'LLM di chiedere categoricamente conferma per ogni comando all'utente.
 \end{itemize}
 
 \section{Soddisfazione dei Requisiti}
@@ -18,7 +23,7 @@ Approcci di implementazione dei requisiti delineati in fase di design nel \texti
     \item \textbf{Monitoraggio (RF4):} La capacità di ispezione (Read-Only) è soddisfatta dal tool \texttt{list\_vms}. Questo strumento interroga le API REST di Proxmox restituendo uno snapshoot delle risorse attualmente allocate e dello stato di nodi e istanze di virtualizzazione.
     \item \textbf{Tracciamento delle transazioni (RF5):} Il requisito di Audit Logging è soddisfatto dall'infrastruttura del Server MCP che, operando come intermediario, può intercettare e registrare tramite il modulo \texttt{logging} di Python ogni transazione JSON-RPC in ingresso e le relative invocazioni REST in uscita, garantendo uno storico documentato delle operazioni.
     \item \textbf{Ciclo di Vita e Provisioning (RF7, RF8):} Le operazioni di alimentazione (boot, shutdown, reboot) e di provisioning sono implementate i tool \texttt{manage\_vm\_state} e \texttt{clone\_resource}, quest'ultimo in particolare permette la creazione di istanze di virtualizzazione tramite clonazione di istanze esistenti, dal momento in cui una creazione da zero necessiterebbe di troppi parametri complessi e alta probabilità di allucinazioni da parte dell'LLM.
-    \item \textbf{Gestione degli Snapshot (RF9):} La raccomandazione preventiva degli snapshot non è delegata a controlli hardware rigidi, ma è implementata a livello semantico tramite \textit{Prompt Engineering}. Le docstring dei tool critici istruiscono il modello LLM a suggerire proattivamente all'utente l'esecuzione di un backup prima di procedere con alterazioni di stato, sfruttando le capacità di ragionamento (ReAct) dell'agente.
+    \item \textbf{Gestione degli Snapshot (RF9):} La raccomandazione preventiva degli snapshot non è delegata a controlli hardware rigidi, ma è implementata a livello semantico tramite \textit{Prompt Engineering}. Le \textit{docstring} dei tool critici istruiscono il modello LLM a suggerire proattivamente all'utente l'esecuzione di un backup prima di procedere con alterazioni di stato, sfruttando le capacità di ragionamento (ReAct) dell'agente.
     \item \textbf{Sicurezza, Autenticazione e Controllo (RF6, RF10, RF11):} Per soddisfare il requisito di autenticazione (RF10), le credenziali vengono caricate attraverso variabili d'ambiente locali, evitando il loro transito nel contesto conversazionale dell'LLM. Il blocco di comandi distruttivi (RF11) e l'attivazione del sistema di alert verso l'utente (RF6) sono garantiti dall'adozione del pattern Human-in-the-Loop che delega al Client la notifica all'utente.
 \end{itemize}
 
@@ -36,16 +41,14 @@ Approcci di implementazione dei requisiti delineati in fase di design nel \texti
 \section{Dettagli operativi}
 In questo paragrafo vengono citati alcuni particolari sul funzionamento dell'intero sistema e vengono colmati possibili dubbi su alcune dinamiche di contorno.
 \begin{itemize}
-    \item \textbf{File di configurazione:} Il percorso del file Python dell'MCP Server viene passato come variabile d'ambiente nel file di configurazione
-    \item \textbf{Gestione delle credenziali:}
-    \item \textbf{Deferred tools:}
-    \item \textbf{Docstring:}
-    \item \textbf{Struttura dei return:}
+    \item \textbf{File di configurazione:} Per rendere disponibile l'MCP Server è necessario caricare Il percorso del file Python che lo definisce come variabile d'ambiente nel file di configurazione del Client, nello specifico per \textit{Claude desktop} è necessario modificare il file \textit{claude\_desktop\_config.json}. Nello stesso file vengono anche definite le credenziali di accesso a Proxmox tramite token generato dalla console di quest'ultimo, anche se per l'accesso tramite SSH c'è anche bisogno di definire le credenziali effettive.
+    \item \textbf{Deferred tools:} Di base l'LLM non inizializza i tool custom finchè non gli viene richiesto esplicitamente  dall'utente, che innesca l'invocazione del comando \texttt{tool\_search}.
+    \item \textbf{Docstring:} All'interno di un metodo Python è possibile definire dei prompt che verranno letti dall'LLM alla chiamata allo scopo di fornire direttive e contesto, in particolare per questo progetto sono state definite chiare direttive per l'implementazione del paradigma \textit{human in the loop} per i tool possibilmente critici, al fine di non delegare all'LLM la categorizzazione basata sulla criticità, ma sarà lui stesso a leggerlo nelle \textit{docstring} del tool.
+    \item \textbf{Struttura dei return:} I metodi Python restituiscono la loro risposta all'LLM come Stringa, ma per migliorarne la qualità è stato definito uno scheletro di contestualizzazione dei dati, soprattutto per i casi in cui è previsto un codice di errore.
 \end{itemize}
 
 \section{Sfide tecniche}
 \begin{itemize}
-\item \textbf{Limiti delle REST API}
-\item \textbf{Barriere di ambiente}
-\item \textbf{Gestione delle eccezioni}
+    \item \textbf{Limiti delle REST API:} Alcune funzionalità non sono esposte dalle REST API di Proxmox, pertanto è necessario utilizzare direttamente comandi shell tramite SSH, ciò è stato possibile tramite la libreria Python \textit{paramiko}, che però non supporta l'uso del token di autenticazione, ma necessita delle credenziali effettive. Inoltre è necessario sottolineare che i comandi lanciati sull'Hypervisor tramite questa tecnica sono eseguiti sul nodo e non sulle singole istanze di virtualizzazione, come invece avviene tramite API.
+    \item \textbf{Gestione delle eccezioni:} A differenza del codice trazizionale in questo progetto è necessario gestire le eccezioni con un approccio diverso dal solito, dal momento in cui a prenderne visione e a gestirle non è un utente, ma un LLM, che deve interpretare correttamente e senza ambiguità i possibili messaggi di errore.
 \end{itemize}
