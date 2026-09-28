@@ -31,7 +31,7 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
             \item Il Server MCP invoca gli endpoint REST dell'Hypervisor necessari a soddisfare la richiesta.
             \item L'Hypervisor elabora la richiesta ed emette la risposta con codice HTTP 200 contenente le metriche grezze.
             \begin{itemize}
-                \item Se l'hypervisor risulta irraggiungibile viene restituito un errore di Connection Timeout.
+                \item Se l'Hypervisor risulta irraggiungibile viene restituito un errore di Connection Timeout.
             \end{itemize}
             \item Il Server MCP estrae e normalizza i dati salienti, restituendoli al Client LLM sotto forma di \textit{Observation} strutturata (\textit{RF3, RF4}).
             \item Il Client LLM sintetizza i dati ricevuti e genera la risposta in linguaggio naturale per l'Utente.
@@ -101,7 +101,7 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
 
 \subsection{Ispezione e Monitoraggio dell'Infrastruttura (Read-Only)}
 \begin{itemize}
-    \item \textbf{RF4 - Monitoraggio dello stato hardware e logico del sistema:} Il sistema deve offrire la possibilità di ricevere una panoramica completa del sistema in termini di risorse allocate ed occupate in tempo reale dai nodi nonchè dalle VM e Container in servizio.
+    \item \textbf{RF4 - Monitoraggio dello stato hardware e logico del sistema:} Il sistema deve offrire la possibilità di ricevere una panoramica completa del sistema in termini di risorse allocate e occupate in tempo reale dai nodi nonché dalle VM e Container in servizio.
     
     \item \textbf{RF5 - Tracciamento delle transazioni (\textit{Audit Logging}):} Il layer MCP deve mantenere uno storico di tutte le richieste ricevute in termini di utente, data e ora, JSON-RPC, API invocate per soddisfare la richiesta e codice HTTP ricevuto.
     
@@ -112,7 +112,7 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
 \begin{itemize}
     \item \textbf{RF7 - Controllo dell'alimentazione (\textit{Power Management}):} Devono essere esposti strumenti di controllo dell'alimentazione di VM e Container in modo sicuro (\textit{boot, shutdown, reboot}).
     
-    \item \textbf{RF8 - Provisioning di base:} Devono essere esposti strumenti per la creazione, gestione dinamica delle risorse allocate e distruzione controllata di VM e Container, anche tramite template registrati sull'hypervisor.
+    \item \textbf{RF8 - Provisioning di base:} Devono essere esposti strumenti per la creazione, gestione dinamica delle risorse allocate e distruzione controllata di VM e Container, anche tramite template registrati sull'Hypervisor.
     
     \item \textbf{RF9 - Gestione degli snapshot:} Prima di ogni intervento di manutenzione deve essere consigliata dall'LLM la possibilità di eseguire uno snapshot del sistema, consentendo un eventuale ripristino \textit{rollback} all'occorrenza.
 \end{itemize}
@@ -136,9 +136,9 @@ I casi d'uso descritti sono affrontati con granularità SEA-LEVEL.
 
     \item \textbf{RNF5 - Tolleranza ai guasti (\textit{Fault Tolerance}:} L'architettura deve essere tale da implementare una gestione robusta degli imprevisti, quali possibili timeout di risposta, errori o JSON malformati e incoerenti.
     
-    \item \textbf{RNF6 - Consistenza e Pattern Saga:} Logicamente ove un prompt preveda più comandi, esso deve essere considerato eseguito solo se tutti i comandi hanno successo, ma in termini pratici diventa ingegneristicamente complesso trasformare un prompt in una trasizione (\textit{ACID}). Per questo motivo, bisogna quindi che il sistema interrompa eventuali sequenze di comandi ne caso uno dovesse fallire e proporre eventualmente delle \textit{operazioni di rollback}.
+    \item \textbf{RNF6 - Consistenza e Pattern Saga:} Logicamente ove un prompt preveda più comandi, esso deve essere considerato eseguito solo se tutti i comandi hanno successo, ma in termini pratici diventa ingegneristicamente complesso trasformare un prompt in una transizione (\textit{ACID}). Per questo motivo, bisogna quindi che il sistema interrompa eventuali sequenze di comandi ne caso uno dovesse fallire e proporre eventualmente delle \textit{operazioni di rollback}.
 
-    \item \textbf{RNF7 - Sicurezza e supervisione (\textit{Human-in-the-Loop}):} Bisogna che azioni critiche vengano monitorate dall'utente in tempo reale e all'occorenza validate da esso. Tutte le azioni possibilmente distruttive o che possano apportare modifiche profonde al sistema devono ricevere conferma da un utente umano. Deve inoltre essere previsto, quando possibile, il tempo di down del sistema su alcuni comandi complessi ed esporre la scelta all'utente.
+    \item \textbf{RNF7 - Sicurezza e supervisione (\textit{Human-in-the-Loop}):} Bisogna che azioni critiche vengano monitorate dall'utente in tempo reale e all'occorrenza validate da esso. Tutte le azioni possibilmente distruttive o che possano apportare modifiche profonde al sistema devono ricevere conferma da un utente umano. Deve inoltre essere previsto, quando possibile, il tempo di down del sistema su alcuni comandi complessi ed esporre la scelta all'utente.
 
-    \item \textbf{RNF8 - Manutenibilità:} Il codice deve essere strutturato affinchè in caso di manutenzione il sistema rimanga in down in tempi brevi. Deve essere implementato un sistema di logging granulare sullo storico di ogni prompt per utente e sulle chiamate API che ne sono conseguite in modo da avere il controllo completo e documentato su tutte le azioni dell'LLM.
+    \item \textbf{RNF8 - Manutenibilità:} Il codice deve essere strutturato affinché in caso di manutenzione il sistema rimanga in down in tempi brevi. Deve essere implementato un sistema di logging granulare sullo storico di ogni prompt per utente e sulle chiamate API che ne sono conseguite in modo da avere il controllo completo e documentato su tutte le azioni dell'LLM.
 \end{itemize}

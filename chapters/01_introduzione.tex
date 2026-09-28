@@ -6,14 +6,14 @@ In ambito infrastrutturale IT, una macchina di tipo server opera grazie all'impi
 
 
 \subsection{Model Context Protocol (MCP)}
-Un qualsiasi \textit{LLM} può interagire con software classici interpretandoli come tools e instaurando con essi una comunicazione simil API, ma molto più stabdardizzata.
+Un qualsiasi \textit{LLM} può interagire con software classici interpretandoli come tools e instaurando con essi una comunicazione simile ad API, ma molto più standardizzata.
 In questo scenario l'azienda \textit{Anthropic} ha sviluppato un protocollo chiamato \textit{MCP} \cite{mcp_anthropic_announcement}, che permette interazioni strutturate basate sulla logica di un sistema client-server, rispettivamente \textit{LLM} e il layer \textit{MCP}.
 
-Attualmente il progetto \textit{MCP} è opensource ed è stato donato da \textit{Anthropic}, per garantirne l'indipendenza, alla \textit{Agentic AI Foundation} \cite{mcp_agentic_ai_foundation} \cite{mcp_project_page}, un fondo gestito dalla \textit{Linux Foundation}.
+Attualmente il progetto \textit{MCP} è open source ed è stato donato da \textit{Anthropic}, per garantirne l'indipendenza, alla \textit{Agentic AI Foundation} \cite{mcp_agentic_ai_foundation} \cite{mcp_project_page}, un fondo gestito dalla \textit{Linux Foundation}.
 
 \section{Problematiche che si propone di risolvere}
 La gestione di un \textit{hypervisor} richiede competenze sistemistiche verticali e l'uso di interfacce GUI o CLI spesso complesse e poco user-friendly.
-In questo lavoro di tesi si propone di realizzare e valutare un \textit{MCP server} con il ruolo di bridge architetturale tra un \textit{LLM} e un hypervisor aggiungendo così una nuova interfaccia per l'utente basata sul linguaggio naturale.
+In questo lavoro di tesi si propone di realizzare e valutare un \textit{MCP server} con il ruolo di bridge architetturale tra un \textit{LLM} e un Hypervisor aggiungendo così una nuova interfaccia per l'utente basata sul linguaggio naturale.
 
 \section{Obiettivi della tesi}
-L'architettura non si limita ad interfacciare un \textit{LLM} ad un hypervisor, ma prevede soluzioni volte a irrobustire questa interfaccia con scelte di design che gestiscono operazioni potenzialmente distruttive e mantengono il controllo sulle azioni dell'\textit{LLM}.
+L'architettura non si limita a interfacciare un \textit{LLM} a un Hypervisor, ma prevede soluzioni volte a irrobustire questa interfaccia con scelte di design che gestiscono operazioni potenzialmente distruttive e mantengono il controllo sulle azioni dell'\textit{LLM}.

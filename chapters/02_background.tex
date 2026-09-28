@@ -30,7 +30,7 @@ L'\textit{IaC (Infrastructure as Code)} \cite{IBM_iac} è una pratica ingegneris
 Il workflow di un team IT basato sul paradigma \textit{IaC} si compone delle seguenti fasi:
 \begin{itemize}
     \item \textbf{Writing}: scrittura dei file di configurazione architetturale tramite linguaggi tipo \textit{HCL, YAML o JSON}.
-    \item \textbf{Versioning}: i rilasci del codice sorgente vengono strutturati tramite sistemi di controllo delle versioni come \textit{Git}, incorporando anche test di controllo automatici ad ogni nuova versione.
+    \item \textbf{Versioning}: i rilasci del codice sorgente vengono strutturati tramite sistemi di controllo delle versioni come \textit{Git}, incorporando anche test di controllo automatici a ogni nuova versione.
     \item \textbf{Provisioning}: un engine di automazione legge i file di configurazione e ne applica le specifiche in maniera idempotente, ovvero senza duplicare azioni già applicate in precedenza o riassegnare ripetutamente le stesse risorse.
     \item \textbf{Distributing}: si applicano script per la distribuzione dell'infrastruttura in vari ambienti assicurando coerenza e stabilità grazie all'uso dei file sorgente già redatti e testati nella fase di Writing.
 \end{itemize}
@@ -39,15 +39,15 @@ Il workflow di un team IT basato sul paradigma \textit{IaC} si compone delle seg
 
 Ponendo particolare attenzione alla fase di Provisioning e alle tecnologie che la popolano, è possibile imbattersi in strumenti di automazione specifici al sistema su cui operano, come \textit{AWS CloudFormation}, \textit{Azure Resource Manager} o \textit{Google Cloud Deployment Manager}, oppure in strumenti universali come \textit{Terraform} \cite{Terraform}. Questi strumenti si interfacciano con il sistema tramite \textit{API (Application Programming Interface)} permettendo interazioni dirette e programmate ed evitando le interazioni manuali tramite console.
 
-Questo lavoro di tesi vuole evolvere questi strumenti grazie all'AI, rendendoli più flessibili e potenti, integrando un \textit{MCP} come layer di comunicazione verso \textit{API REST} permettendo ad un LLM di dialogare con i sistemi IT.
+Questo lavoro di tesi vuole evolvere questi strumenti grazie all'AI, rendendoli più flessibili e potenti, integrando un \textit{MCP} come layer di comunicazione verso \textit{API REST} permettendo a un LLM di dialogare con i sistemi IT.
 
 \section{Interfacce per LLM}
 I Large Language Model sono di base incapaci di interagire con software esterni, per superare questi limiti architetturali ogni provider ha sviluppato in autonomia un proprio paradigma di interazione tra cui spicca il modello \textit{ReAct (Reasoning and Acting)} introdotto da Yao et al. \cite{yao2023react}.
 Questo pattern istruisce il modello a produrre un output che alterna in modo iterativo tracce di ragionamento logico (Reasoning) ad azioni specifiche (Acting) rivolte a sistemi esterni, permettendo all'agente di aggiornare dinamicamente il proprio contesto.
 
-L'implementazione tecnica del pattern ReAct si concretizza tramite il meccanismo del \textit{Tool Calling} (o \textit{Function Calling}), un'idea che prevede di iniettare la lista strutturata in formato JSON dei tools a disposizione dell'IA con tanto di descrizione di ogni funzione chiamabile insieme ai suoi parametri.
+L'implementazione tecnica del pattern ReAct si concretizza tramite il meccanismo del \textit{Tool Calling} (o \textit{Function Calling}), un'idea che prevede di iniettare la lista strutturata in formato JSON dei tools a disposizione dell'IA con tanto di descrizione di ogni funzione invocabile insieme ai suoi parametri.
 
-La pipeline di funzionamento si compone quindi nei seguenti step:
+La pipeline di funzionamento si compone quindi nei seguenti steps:
 \begin{itemize}
     \item \textbf{Decisione:} l'agente determina che per soddisfare una richiesta è necessario interagire con un tool
     \item \textbf{Invocazione:} l'LLM genera un \textit{payload} JSON contenente l'intenzione di invocare un \textit{tool} specifico e i relativi argomenti tipizzati.
@@ -57,7 +57,7 @@ La pipeline di funzionamento si compone quindi nei seguenti step:
 
 \section{Limiti degli approcci attuali}
 Sebbene il \textit{Tool Calling} offra un'interfaccia tra i modelli generativi e i sistemi IT, la sua implementazione non filtrata in ambienti di produzione critici solleva sfide ingegneristiche non trascurabili.
-Dal momento in cui un sistema dipendente da un hypervisor \textit{bare-metal} come Proxmox VE ė spesso impiegato in ambito enterprise l'esecuzione di comandi errati può arrecare danni economici importanti.
+Dal momento in cui un sistema dipendente da un Hypervisor \textit{bare-metal} come Proxmox VE è spesso impiegato in ambito enterprise l'esecuzione di comandi errati può arrecare danni economici importanti.
 
 La principale causa di comandi distruttivi deriva dal fenomeno delle "allucinazioni" che può colpire un qualsiasi LLM o da un prompt ambiguo non deterministicamente eseguibile.
 
@@ -82,5 +82,5 @@ Per ovviare ai limiti del pattern ReAct e del tool calling in un contesto di pro
 
     \item \textbf{Middleware di sicurezza:} esistono soluzioni specifiche di middleware come Keycloak o OAuth2 Proxy che possono essere utilizzate per aggiungere una layer di sicurezza aggiuntivo tra l'LLM e le API di sistema. Questi strumenti possono gestire l'accesso e l'autenticazione di sicurezza, riducendo il rischio di allucinazioni o comportamenti ambigui.
 
-    \item \textbf{Sistemi a Plugin Proprietari:} i principali provider di LLM di frontiera hanno tentato di risolvere il problema incorporando protocolli proprietari (come gli ormai deprecati OpenAI Plugins),che permettevano al modello di interrogare API esterne tramite la lettura di file di specifica (come OpenAPI). Tali soluzioni, seppur funzionali, generano un forte \textit{vendor lock-in} e risultano inadatte ad architetture on-premise chiuse come i cluster Proxmox.
+    \item \textbf{Sistemi a Plugin Proprietari:} i principali provider di LLM di frontiera hanno tentato di risolvere il problema incorporando protocolli proprietari (come gli ormai deprecati OpenAI Plugins), che permettevano al modello di interrogare API esterne tramite la lettura di file di specifica (come OpenAPI). Tali soluzioni, seppur funzionali, generano un forte \textit{vendor lock-in} e risultano inadatte ad architetture on-premise chiuse come i cluster Proxmox.
 \end{itemize}
