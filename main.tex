@@ -1,9 +1,21 @@
 \documentclass[12pt, a4paper]{report}
-
 \usepackage[utf8]{inputenc}
 \usepackage[italian]{babel}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% --- CONFIGURAZIONE LISTINGS (utile per rappresentazione di codice e log del terminale) ---
+\lstset{
+    basicstyle=\ttfamily\footnotesize, % Font monospazio e dimensione ridotta (footnotesize o scriptsize)
+    breaklines=true,                   % Spezza le righe lunghe in automatico
+    breakatwhitespace=false,           % Permette di spezzare anche se non c'è uno spazio (utile per i percorsi/URL)
+    frame=single,                      % Aggiunge un bordo elegante attorno al codice
+    numbers=left,                      % Aggiunge i numeri di riga a sinistra
+    numberstyle=\tiny\color{gray},     % Stile dei numeri di riga
+    showstringspaces=false             % Nasconde i fastidiosi trattini bassi negli spazi
+}
 
 % --- IMPAGINAZIONE E MARGINI ---
 \usepackage[
