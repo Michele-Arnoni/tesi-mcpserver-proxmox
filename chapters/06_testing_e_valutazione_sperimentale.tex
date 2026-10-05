@@ -2,7 +2,7 @@
 
 \section{Criteri di testing}
 \begin{itemize}
-    \item \textbf{Esecuizione in ambiente instabile:} Per testare la robustezza dell'MCP Server e dimostrare la sua indipendenza dall'LLM lato sicurezza, esso è stato testato su LLM meno intelligenti e quindi più propensi ad allucinare, interpretare in modo errato un prompt ambiguo o a essere raggirati, in particolare sono stati usati modelli locali tramite il motore di inferenza \textit{Ollama} con diverse livelli di intelligenza basati sul numero di parametri. Tutti i test sono riproducibili tramite script Python reso disponibile nel repository del progetto.
+    \item \textbf{Esecuizione in ambiente instabile:} Per testare la robustezza dell'MCP Server e dimostrare la sua indipendenza dall'LLM lato sicurezza, esso è stato testato su LLM meno intelligenti e quindi più propensi ad allucinare, interpretare in modo errato un prompt ambiguo o a essere raggirati, in particolare sono stati usati modelli locali tramite il motore di inferenza \textit{Ollama} con diverse livelli di intelligenza basati sul numero di parametri. Tutti i test sono riproducibili tramite script Python reso disponibile nel repository del progetto \cite{repository_progetto}.
     \item \textbf{Abort managnment:} Comportamento del sistema in caso di esito negativo al fronte di una richiesta e gestione dell'output di errore.
     \item \textbf{Prompt injection:} Analisi delle scelte dell'LLM in caso di prompt injection e comportamento della sicurezza lato MCP Server nel caso di compromissione dell'LLM.
 \end{itemize}
