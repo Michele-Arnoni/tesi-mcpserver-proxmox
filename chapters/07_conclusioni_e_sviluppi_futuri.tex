@@ -1,5 +1,18 @@
 \chapter{Conclusioni e sviluppi futuri}
 
 \section{Conclusioni oggettive}
+Al netto dei test eseguiti sono evidenti i limiti e i benefici di un architettura di gestione per infrastrutture di virtualizzazione basata su modelli di intelligenza artificiale:
+\begin{itemize}
+    \item \textbf{Facilità d'Uso:} Gestire sistemi complessi ed eseguire serie di comandi strutturati tramite il linguaggio naturale, con annessi consigli contestualizzati in tempo reale, rende più immediato e semplice il processo di interazione con un Hypervisor, che normalmente richiede competenze verticali e l'esecuzione di comandi spesso verbosi e suscettibili all'errore umano.
+    \item \textbf{Livello di Controllo:} Con l'uso di un LLM il controllo sulle azioni che si stanno eseguendo può diventare molto granulare se specificato a esso, asseconda delle esigenze dell'utente. Inoltre ottenere una panoramica del sistema, dei suoi moduli e delle risorse diventa immediato e semplice.
+    \item \textbf{Sicurezza:} Qui sono visibili le criticità più importanti, il buon funzionamento del sistema è basato sulla fiducia che l'utente ha nei riguardi dell'LLM, fiducia che quest'ultimo rispetti le direttive dei tools e che proponga strategie non distruttive o quanto meno corrette per l'esecuzione di comandi più strutturati. È emerso dai test che su modelli meno intelligenti non è difficile ingannare l'LLM tramite \textit{prompt injection} e raggirare le \textit{docstring} dei tools.
+\end{itemize}
+
+In conclusione, riportando il focus sull'argomento centrale di questo lavoro di testi, ovvero il layer di comunicazione basato su protocollo MCP, è risultato tecnicamente semplice l'esposizione delle API in veste di tools e altrettanto semplice l'integrazione con un qualsivoglia LLM.
 
 \section{Sviluppi futuri}
+Sulla base delle criticità riscontrate e sulla flessibilità del protocollo MCP, sono state individuate le seguenti possibilità di sviluppo future:
+\begin{itemize}
+    \item \textbf{Proof-of-work di Sicurezza:} Per ovviare alla possibilità che l'LLM passi il flag di conferma utente come \texttt{true} di sua iniziativa è necessario strutturare le chiamate critiche su due stadi, in modo da obbligare l'LLM a una interazione di intermezzo con l'utente. Per fare ciò si potrebbe implementare un pin di sicurezza al posto del flag di conferma, tale pin è un numero casuale generato automaticamente dall'MCP Server a tempo di chiamata e restituito all'LLM affinché esso richieda la digitazione manuale all'utente, che allo stesso tempo prende atto delle azioni chiamate. Questa soluzione presenta però criticità in ambienti agentici, ovvero dove un LLM può eseguire più volte delle azioni e ognuna di esse non richiede intervento umano.
+    \item \textbf{Gerarchia delle Direttive:} Modelli meno intelligenti sono risultati vulnerabili al \textit{prompt injection}, per via della mancanza di priorità delle direttive, logicamente le \textit{docstring} devono avere la priorità assoluta e avere la precedenza su delle richieste che vi entrano in conflitto formulate da un utente. Pertanto bisognerebbe implementare un sistema di priorità affidabile sulle direttive dell'LLM.
+\end{itemize}
